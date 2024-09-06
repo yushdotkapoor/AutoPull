@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+autopull_rc_file=$(echo ${HOME}/.autopullrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 
 if [ "$1" = "--cleanall" ]; then
@@ -6,8 +7,10 @@ if [ "$1" = "--cleanall" ]; then
     crontab -l | grep -v "$(which autopull)" | crontab -
     if [ $SHELL = "/bin/zsh" ]; then
         sed -i '' "/${auto_pull_script//\//\\/}/d" $rc_file
+        sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $rc_file
+        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     fi
     echo "Autopull removed for all directories."
     exit 0
@@ -18,8 +21,10 @@ if [ "$1" = "--clean" ]; then
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
     if [ $SHELL = "/bin/zsh" ]; then
         sed -i '' "/${auto_pull_script//\//\\/}/d" $rc_file
+        sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $rc_file
+        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     fi
     echo "Autopull removed for $PWD."
     exit 0
@@ -50,17 +55,14 @@ do
     fi
 
     auto_pull_script="$(which autopull) $PWD"
-    if ! crontab -l | grep -q "$(which autopull) $PWD" || ! grep -q "$auto_pull_script" $rc_file; then
+    if ! grep -q "$auto_pull_script" $autopull_rc_file; then
         # Check if the user wants to set up autopull for a repository y/n
         read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
         
         if [ "$yn" = "y" ]; then
-            # Add the autopull script to the crontab and rc_file
-            if ! crontab -l | grep -q "$(which autopull) $PWD"; then
-                (crontab -l 2>/dev/null; echo "* * * * * $auto_pull_script" ) | crontab -
-            fi
-            if ! grep -q "$auto_pull_script" $rc_file; then
-                echo "(($auto_pull_script &) &) > /dev/null" >> $rc_file
+            # Add the autopull script to the crontab and autopull_rc_file
+            if ! grep -q "$auto_pull_script" $autopull_rc_file; then
+                echo "(($auto_pull_script &) &) > /dev/null" >> $autopull_rc_file
             fi
             echo "Autopull set up for $PWD for every minute."
         fi  
