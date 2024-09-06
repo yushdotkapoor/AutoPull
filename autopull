@@ -2,6 +2,15 @@
 autopull_rc_file=$(echo ${HOME}/.autopullrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 
+if [ "$1" = "--help" ]; then
+    echo "Usage: autopull [DIRECTORY] [--uninstall] [--clean] [--cleanall]"
+    echo "DIRECTORY: The directory to set up autopull for. If no directory is provided, the current directory is used."
+    echo "--uninstall: Uninstalls autopull from the system."
+    echo "--clean: Removes autopull for the current directory."
+    echo "--cleanall: Removes autopull for all directories."
+    exit 0
+fi
+
 if [ "$1" = "--uninstall" ]; then
     if [ $autopull_rc_file ]; then
         rm $autopull_rc_file

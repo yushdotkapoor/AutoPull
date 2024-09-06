@@ -30,3 +30,5 @@ if ! grep -q "$auto_pull_script" $rc_file; then
     echo "# AutoPull" >> $rc_file
     echo "$auto_pull_script" >> $rc_file
 fi
+
+echo "Autopull installed. To uninstall, run 'autopull --uninstall'."
