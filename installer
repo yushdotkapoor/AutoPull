@@ -20,7 +20,7 @@ autopullrc_path=${HOME}/.autopullrc
 touch $autopullrc_path
 echo "#!/usr/bin/env bash" > $autopullrc_path
 
-auto_pull_script="source $autopullrc_path"
+auto_pull_script="bash $autopullrc_path"
 if ! crontab -l | grep -q "$auto_pull_script"; then
     (crontab -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $auto_pull_script" ) | crontab -
 fi

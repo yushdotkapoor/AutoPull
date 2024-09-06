@@ -18,7 +18,7 @@ if [ "$1" = "--uninstall" ]; then
         sed -i "/# AutoPull/d" $rc_file
         sed -i "/.autopullrc/d" $rc_file
     fi
-    echo "Autopull uninstalled. To reinstall, run 'source install' in the AutoPull repository."
+    echo "Autopull uninstalled. To reinstall, run 'source installer' in the AutoPull repository."
     exit 0
 fi
 
