@@ -14,10 +14,11 @@ if [ $SHELL = '/bin/ash' ]; then
     ln -s $AUTOPULL_PATH/autopull /usr/local/bin
     exit 0
 fi
-cat ${AUTOPULL_PATH}/autopull_preload.txt | sudo -S ln -s $AUTOPULL_PATH/autopull /usr/local/bin
+ln -s $AUTOPULL_PATH/autopull /usr/local/bin
 
 autopullrc_path=${HOME}/.autopullrc
 touch $autopullrc_path
+echo "#!/usr/bin/env bash" > $autopullrc_path
 
 auto_pull_script="source $autopullrc_path"
 if ! crontab -l | grep -q "$auto_pull_script"; then

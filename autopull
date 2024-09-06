@@ -2,7 +2,7 @@
 autopull_rc_file=$(echo ${HOME}/.autopullrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 
-if [ "$1" = "--reset" ]; then
+if [ "$1" = "--uninstall" ]; then
     if [ $autopull_rc_file ]; then
         rm $autopull_rc_file
     fi
