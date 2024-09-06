@@ -1,0 +1,49 @@
+git config --global credential.helper 'cache --timeout=3600'
+
+dir=$PWD
+if [ "$#" -eq 1 ]; then
+    dir=$1
+fi
+
+# Check if the directory is a git repository
+cd "$dir"
+if [ ! -d ".git" ]; then
+    echo "This directory is not a git repository."
+    exit 1
+fi
+
+# Check if the user wants to set up autopull for a repository y/n
+if ! crontab -l | grep -q "$(which autopull) \"$dir\""; then
+    read -p "Do you want to set up periodic autopull for $PWD? (y/n) " yn
+    
+    if [ "$yn" = "y" ]; then
+        # Add the autopull script to the crontab
+        (crontab -l 2>/dev/null; echo "* * * * * $(which autopull) \"$dir\"" ) | crontab -
+        echo "Autopull set up for $dir for every minute."
+    fi
+fi
+
+git fetch
+# Check if the local branch has a remote tracking branch
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+  
+if [ -z "$UPSTREAM" ]; then
+    echo "No upstream branch is set. Please ensure your branch is tracking a remote branch."
+    exit 1
+fi
+
+# Check if the local branch is behind the remote
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse @{u})
+BASE=$(git merge-base @ @{u})
+
+if [ "$LOCAL" = "$REMOTE" ]; then
+    echo "Repository is up-to-date."
+elif [ "$LOCAL" = "$BASE" ]; then
+    echo "Repository is behind, pulling changes..."
+    git pull
+elif [ "$REMOTE" = "$BASE" ]; then
+    echo "Repository has local changes that are not pushed."
+else
+    echo "Repository has diverged."
+fi
