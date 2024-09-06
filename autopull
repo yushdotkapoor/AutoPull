@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 
 if [ "$1" = "--cleanall" ]; then
