@@ -1,58 +1,92 @@
 git config --global credential.helper 'cache --timeout=3600'
 
-dir=$PWD
-if [ "$#" -eq 1 ]; then
-    dir=$1
-fi
+rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 
-
-# Check if the directory exists
-if [ ! -d "$dir" ]; then
-    echo "Directory $dir does not exist."
-    exit 1
-fi
-
-# Change to the directory
-cd "$dir"
-
-# Check if the directory is a git repository
-if [ ! -d ".git" ]; then
-    echo "This directory is not a git repository."
-    exit 1
-fi
-
-# Check if the user wants to set up autopull for a repository y/n
-if ! crontab -l | grep -q "$(which autopull) \"$dir\""; then
-    read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
-    
-    if [ "$yn" = "y" ]; then
-        # Add the autopull script to the crontab
-        (crontab -l 2>/dev/null; echo "* * * * * $(which autopull) \"$dir\"" ) | crontab -
-        echo "Autopull set up for $dir for every minute."
+if [ "$1" = "--cleanall" ]; then
+    auto_pull_script="$(which autopull)"
+    crontab -l | grep -v "$(which autopull)" | crontab -
+    if [ $SHELL = "/bin/zsh" ]; then
+        sed -i '' "/${auto_pull_script//\//\\/}/d" $rc_file
+    else
+        sed -i "/${auto_pull_script//\//\\/}/d" $rc_file
     fi
+    echo "Autopull removed for all directories."
+    exit 0
 fi
 
-git fetch
-# Check if the local branch has a remote tracking branch
-UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
-  
-if [ -z "$UPSTREAM" ]; then
-    echo "No upstream branch is set. Please ensure your branch is tracking a remote branch."
-    exit 1
+if [ "$1" = "--clean" ]; then
+    auto_pull_script="$(which autopull) $PWD"
+    crontab -l | grep -v "$(which autopull) $PWD" | crontab -
+    if [ $SHELL = "/bin/zsh" ]; then
+        sed -i '' "/${auto_pull_script//\//\\/}/d" $rc_file
+    else
+        sed -i "/${auto_pull_script//\//\\/}/d" $rc_file
+    fi
+    echo "Autopull removed for $PWD."
+    exit 0
 fi
 
-# Check if the local branch is behind the remote
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse @{u})
-BASE=$(git merge-base @ @{u})
-
-if [ "$LOCAL" = "$REMOTE" ]; then
-    echo "Repository is up-to-date."
-elif [ "$LOCAL" = "$BASE" ]; then
-    echo "Repository is behind, pulling changes..."
-    git pull
-elif [ "$REMOTE" = "$BASE" ]; then
-    echo "Repository has local changes that are not pushed."
-else
-    echo "Repository has diverged."
+directories=$@
+if [ "$#" -eq 0 ]; then
+    directories[0]=$PWD
 fi
+
+for i in $directories
+do
+    # Check if the directory exists
+    if [ ! -d "$i" ]; then
+        echo "Error: Directory $i does not exist."
+        continue
+    fi
+
+    # Change to the directory
+    cd "$i"
+
+    # Check if the directory is a git repository
+    if [ ! -d ".git" ]; then
+        echo "ERROR: Directory $i is not a git repository."
+        continue
+    fi
+
+    auto_pull_script="$(which autopull) $PWD"
+    if ! crontab -l | grep -q "$(which autopull) $PWD" || ! grep -q "$auto_pull_script" $rc_file; then
+        # Check if the user wants to set up autopull for a repository y/n
+        read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
+        
+        if [ "$yn" = "y" ]; then
+            # Add the autopull script to the crontab and rc_file
+            if ! crontab -l | grep -q "$(which autopull) $PWD"; then
+                (crontab -l 2>/dev/null; echo "* * * * * $auto_pull_script" ) | crontab -
+            fi
+            if ! grep -q "$auto_pull_script" $rc_file; then
+                echo "(($auto_pull_script &) &) > /dev/null" >> $rc_file
+            fi
+            echo "Autopull set up for $PWD for every minute."
+        fi  
+    fi
+
+    git fetch
+    # Check if the local branch has a remote tracking branch
+    UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+    
+    if [ -z "$UPSTREAM" ]; then
+        echo "No upstream branch is set for $PWD. Please ensure your branch is tracking a remote branch."
+        continue
+    fi
+
+    # Check if the local branch is behind the remote
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse @{u})
+    BASE=$(git merge-base @ @{u})
+
+    if [ "$LOCAL" = "$REMOTE" ]; then
+        echo "Repository is up-to-date."
+    elif [ "$LOCAL" = "$BASE" ]; then
+        echo "Repository is behind, pulling changes..."
+        git pull
+    elif [ "$REMOTE" = "$BASE" ]; then
+        echo "Repository has local changes that are not pushed."
+    else
+        echo "Repository has diverged."
+    fi
+done
