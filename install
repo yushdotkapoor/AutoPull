@@ -14,7 +14,7 @@ if [ $SHELL = '/bin/ash' ]; then
     ln -s $AUTOPULL_PATH/autopull /usr/local/bin
     exit 0
 fi
-ln -s $AUTOPULL_PATH/autopull /usr/local/bin
+cat ${AUTOPULL_PATH}/autopull_preload.txt | sudo -S ln -s $AUTOPULL_PATH/autopull /usr/local/bin
 
 autopullrc_path=${HOME}/.autopullrc
 touch $autopullrc_path
