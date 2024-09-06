@@ -5,8 +5,17 @@ if [ "$#" -eq 1 ]; then
     dir=$1
 fi
 
-# Check if the directory is a git repository
+
+# Check if the directory exists
+if [ ! -d "$dir" ]; then
+    echo "Directory $dir does not exist."
+    exit 1
+fi
+
+# Change to the directory
 cd "$dir"
+
+# Check if the directory is a git repository
 if [ ! -d ".git" ]; then
     echo "This directory is not a git repository."
     exit 1
@@ -14,7 +23,7 @@ fi
 
 # Check if the user wants to set up autopull for a repository y/n
 if ! crontab -l | grep -q "$(which autopull) \"$dir\""; then
-    read -p "Do you want to set up periodic autopull for $PWD? (y/n) " yn
+    read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
     
     if [ "$yn" = "y" ]; then
         # Add the autopull script to the crontab
