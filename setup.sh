@@ -21,10 +21,10 @@ touch $autopullrc_path
 
 auto_pull_script="source $autopullrc_path"
 if ! crontab -l | grep -q "$auto_pull_script"; then
-    (crontab -l 2>/dev/null; echo "* * * * * $auto_pull_script" ) | crontab -
+    (crontab -l 2>/dev/null; echo "# AutoPull\n* * * * * $auto_pull_script" ) | crontab -
 fi
 
 rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
 if ! grep -q "$auto_pull_script" $rc_file; then
-    echo "$auto_pull_script" >> $rc_file
+    echo "# AutoPull\n$auto_pull_script" >> $rc_file
 fi
