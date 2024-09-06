@@ -26,10 +26,11 @@ if [ "$1" = "--clean" ]; then
     exit 0
 fi
 
-directories=$@
 if [ "$#" -eq 0 ]; then
-    directories[0]=$PWD
+    set -- "$PWD"
 fi
+
+directories=$@
 
 for i in $directories
 do
