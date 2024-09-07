@@ -34,7 +34,7 @@ if [ "$1" = "--uninstall" ]; then
     exit 0
 fi
 
-if [ "$1" = "--cleanall" ]; then
+if [ "$1" = "--remove-all" ]; then
     autopull_script=$(echo "$(which autopull)" | sed 's/\//\\\//g')
     if [ "$(uname)" = "Darwin" ]; then
         sed -i '' "/$autopull_script/d" "$autopull_repo_file"
@@ -45,7 +45,7 @@ if [ "$1" = "--cleanall" ]; then
     exit 0
 fi
 
-if [ "$1" = "--clean" ]; then
+if [ "$1" = "--remove" ]; then
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
 
     autopull_script=$(echo "$(which autopull)\ $PWD" | sed 's/\//\\\//g')
