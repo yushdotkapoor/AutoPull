@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
+PATH=/usr/local/bin:$PATH
 
-target_user=$(/usr/bin/whoami)
+target_user=$($(which whoami))
 
 autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 
