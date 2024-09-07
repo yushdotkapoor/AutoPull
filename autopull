@@ -2,14 +2,22 @@
 
 target_user=$(/usr/bin/whoami)
 
-autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
+function get_autopull_repo_file() {
+    echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1
+}
+
+autopull_repo_file=$(get_autopull_repo_file)
 
 if [ "$1" = "--help" ]; then
-    echo "Usage: autopull [DIRECTORY] [--uninstall] [--clean] [--cleanall]"
-    echo "DIRECTORY: The directory to set up autopull for. If no directory is provided, the current directory is used."
-    echo "--uninstall: Uninstalls autopull from the system."
-    echo "--clean: Removes autopull for the current directory."
-    echo "--cleanall: Removes autopull for all directories."
+    echo "Usage: autopull [options] [directories]"
+    echo "Options:"
+    echo "  --install: Install AutoPull for the current user."
+    echo "  --uninstall: Uninstall AutoPull for the current user."
+    echo "  --remove: Remove AutoPull for the current directory."
+    echo "  --remove-all: Remove AutoPull for all directories."
+    echo "  --pull-all: Pull changes for all directories with AutoPull."
+    echo "  --repositories: List all directories with AutoPull."
+    echo "  --help: Display this help message."
     exit 0
 fi
 
@@ -21,6 +29,7 @@ if [ "$1" = "--uninstall" ]; then
     if [ "$target_user" = "root" ]; then
         target_user=$(eval echo \${$#})
     fi
+    autopull_repo_file=$(get_autopull_repo_file)
 
     if [ $autopull_repo_file ]; then
         rm $autopull_repo_file
@@ -29,7 +38,7 @@ if [ "$1" = "--uninstall" ]; then
         rm /usr/local/bin/autopull
     fi
     crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
-    crontab -u "$target_user" -l | grep -v ".autopull_repositories" | crontab -u "$target_user" -
+    crontab -u "$target_user" -l | grep -v "$(which autopull)" | crontab -u "$target_user" -
     echo "Autopull uninstalled. To reinstall, run 'make' in the AutoPull repository."
     exit 0
 fi
