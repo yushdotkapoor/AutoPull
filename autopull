@@ -65,7 +65,11 @@ fi
 
 if [ "$1" = "--pull-all" ]; then
     repositories=$(cat $autopull_repo_file)
-    (($(which autopull) $repositories &) & ) >/dev/null
+    if [ -z "$repositories" ]; then
+        echo "No repositories set up for AutoPull."
+        exit 0
+    fi
+    $(which autopull) $repositories
     exit 0
 fi
 
@@ -129,14 +133,14 @@ do
     BASE=$(git merge-base @ @{u})
 
     if [ "$LOCAL" = "$REMOTE" ]; then
-        echo "Repository is up-to-date."
+        echo "$PWD is up-to-date."
     elif [ "$LOCAL" = "$BASE" ]; then
-        echo "Repository is behind, pulling changes..."
+        echo "$PWD is behind, pulling changes..."
         git pull
     elif [ "$REMOTE" = "$BASE" ]; then
-        echo "Repository has local changes that are not pushed."
+        echo "$PWD has local changes that are not pushed."
     else
-        echo "Repository has diverged."
+        echo "$PWD has diverged."
     fi
 done
 cd $current_dir
