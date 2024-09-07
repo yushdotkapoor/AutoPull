@@ -58,6 +58,12 @@ if [ "$1" = "--clean" ]; then
     exit 0
 fi
 
+if [ "$1" = "--pull-all" ]; then
+    repositories=$(cat $autopull_repo_file)
+    (($(which autopull) $repositories &) & ) >/dev/null
+    exit 0
+fi
+
 if [ "$#" -eq 0 ]; then
     set -- "$PWD"
 fi
@@ -85,15 +91,14 @@ do
         continue
     fi
 
-    autopull_script="$(which autopull) $PWD"
-    if ! grep -q "$autopull_script" $autopull_repo_file; then
+    if ! grep -q $PWD $autopull_repo_file; then
         # Check if the user wants to set up autopull for a repository y/n
         read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
         
         if [ "$yn" = "y" ]; then
             # Add the autopull script to the crontab and autopull_repo_file
-            if ! grep -q "$autopull_script" $autopull_repo_file; then
-                echo "(($autopull_script &) &) > /dev/null" >> $autopull_repo_file
+            if ! grep -q $PWD $autopull_repo_file; then
+                echo $PWD >> $autopull_repo_file
             fi
             echo "Autopull set up for $PWD for every minute."
         fi  
