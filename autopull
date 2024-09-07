@@ -7,7 +7,7 @@ target_user=$($(which whoami))
 autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev/null | head -n 1)
 
-function help {
+help () {
     echo "Usage: autopull [options] [directories]"
     echo "Options:"
     echo "  --pull-all: Pull changes for all directories with AutoPull."
@@ -20,7 +20,7 @@ function help {
     echo "  --help: Display this help message."
 }
 
-function main {
+main () {
     directories=$@
     for i in $directories
     do
@@ -81,7 +81,7 @@ function main {
     cd "$current_dir"
 }
 
-function pull_all {
+pull_all () {
     repositories=$(cat $autopull_repo_file)
     if [ -z "$repositories" ]; then
         echo "No repositories set up for AutoPull."
@@ -90,7 +90,7 @@ function pull_all {
     $(which autopull) $repositories
 }
 
-function remove_all {
+remove_all () {
     read -p "Are you sure you want to remove AutoPull for all directories? (y/n) " yn
     if [ "$yn" != "y" ]; then
         continue
@@ -99,7 +99,7 @@ function remove_all {
     echo "Autopull removed for all directories."
 }
 
-function remove {
+remove () {
     if [ "$#" -eq 0 ]; then
         set -- "$PWD"
     fi
@@ -134,7 +134,7 @@ function remove {
     done
 }
 
-function uninstall {
+uninstall () {
     if [ "$(id -u)" -ne 0 ]; then
         echo "Running with sudo..."
         exec sudo "$0" "$@" $target_user
@@ -158,13 +158,13 @@ function uninstall {
     echo "Autopull uninstalled. To reinstall, run 'make' in the AutoPull repository."
 }
 
-function log_start {
+log_start () {
     current_date_time="`date "+%Y-%m-%d %H:%M:%S"`"
     echo "______________________________________________________________" >> $log_file
     echo "[$current_date_time]" >> $log_file
 }
 
-function log_end {
+log_end () {
     echo "______________________________________________________________" >> $log_file
 }
 
