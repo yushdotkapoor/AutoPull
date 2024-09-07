@@ -11,13 +11,15 @@ When working with distributed systems or code that is deployed to several differ
 
 ## Support
 
-This code has been tested with bash, zsh, and ash on MacOS Sonoma, MacOS Big Sur and Ubuntu 24.04
+This code has been tested on MacOS Sonoma, MacOS Big Sur and Ubuntu 24.04
 
 ## How it works
 
-AutoPull adds cron job to crontab that calls the autopuller resource configuration (.autopullrc). The crontab will run from the user's crontab file, wherever that may be located.
+AutoPull adds cron job to crontab that calls the autopuller and pulls all repositories set up for autopull (found in .autopull_repositories). The crontab will run from the user's crontab file, wherever that may be located. The crontab will run ```autopull --pull-all``` every minute.
 
-When a repository is added to the .autopullrc file, it calls git pull on the repository.
+A repository path is added to the .autopull_repositories file, which means that if the repository is ever moved, this may cause issues.
+
+A log file will also be present with time stamps to check for errors.
 
 ## Installation
 
@@ -35,7 +37,7 @@ make
 
 ## Usage
 
-To automatically pull a repository every minute
+To set up a repository to pull from GitHub every minute
 ```
 autopull /path/to/repository
 ```
@@ -44,10 +46,28 @@ or
 cd /path/to/repository
 autopull
 ````
+
+To remove a repository from autopulling
+```
+autopull --remove /path/to/repository
+```
+or
+```
+cd /path/to/repository
+autopull --remove
+```
+
+To view the current repositories set up for autopulling
+```
+autopull --repositories
+```
+
 To uninstall AutoPull
 ```
 sudo autopull --uninstall
 ```
+
+Run ```autopull --help``` for more information
 
 ## License
 

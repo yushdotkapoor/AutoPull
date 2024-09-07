@@ -1,24 +1,140 @@
 #!/usr/bin/env sh
 PATH=/usr/local/bin:$PATH
 
+current_dir=$PWD
 target_user=$($(which whoami))
 
 autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
+log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev/null | head -n 1)
 
-if [ "$1" = "--help" ]; then
+function help {
     echo "Usage: autopull [options] [directories]"
     echo "Options:"
-    echo "  --install: Install AutoPull for the current user."
-    echo "  --uninstall: Uninstall AutoPull for the current user."
-    echo "  --remove: Remove AutoPull for the current directory."
-    echo "  --remove-all: Remove AutoPull for all directories."
     echo "  --pull-all: Pull changes for all directories with AutoPull."
+    echo "  --remove [directories]: Remove AutoPull for the specified directories."
+    echo "  --remove-all: Remove AutoPull for all directories."
     echo "  --repositories: List all directories with AutoPull."
+    echo "  --logs: Display the AutoPull logs."
+    echo "  --clear-logs: Clear the AutoPull logs."
+    echo "  --uninstall: Uninstall AutoPull for the current user."
     echo "  --help: Display this help message."
-    exit 0
-fi
+}
 
-if [ "$1" = "--uninstall" ]; then
+function main {
+    directories=$@
+    for i in $directories
+    do
+        cd "$current_dir"
+        # Check if the directory exists
+        if [ ! -d "$i" ]; then
+            echo "Error: Directory $i does not exist."
+            continue
+        fi
+
+        # Change to the directory
+        cd "$i"
+
+        # Check if the directory is a git repository
+        if [ ! -d ".git" ]; then
+            echo "ERROR: Directory $i is not a git repository."
+            continue
+        fi
+
+        if ! grep -q $PWD $autopull_repo_file; then
+            # Check if the user wants to set up autopull for a repository y/n
+            read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
+            
+            if [ "$yn" = "y" ]; then
+                # Add the autopull script to the crontab and autopull_repo_file
+                if ! grep -q $PWD $autopull_repo_file; then
+                    echo $PWD >> $autopull_repo_file
+                fi
+                echo "Autopull set up for $PWD for every minute."
+            fi  
+        fi
+
+        git fetch
+        # Check if the local branch has a remote tracking branch
+        UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+        
+        if [ -z "$UPSTREAM" ]; then
+            echo "No upstream branch is set for $PWD. Please ensure your branch is tracking a remote branch."
+            continue
+        fi
+
+        # Check if the local branch is behind the remote
+        LOCAL=$(git rev-parse @)
+        REMOTE=$(git rev-parse @{u})
+        BASE=$(git merge-base @ @{u})
+
+        if [ "$LOCAL" = "$REMOTE" ]; then
+            echo "$PWD is up-to-date."
+        elif [ "$LOCAL" = "$BASE" ]; then
+            echo "$PWD is behind, pulling changes..."
+            git pull
+        elif [ "$REMOTE" = "$BASE" ]; then
+            echo "$PWD has local changes that are not pushed."
+        else
+            echo "$PWD has diverged."
+        fi
+    done
+    cd "$current_dir"
+}
+
+function pull_all {
+    repositories=$(cat $autopull_repo_file)
+    if [ -z "$repositories" ]; then
+        echo "No repositories set up for AutoPull."
+        return
+    fi
+    $(which autopull) $repositories
+}
+
+function remove_all {
+    read -p "Are you sure you want to remove AutoPull for all directories? (y/n) " yn
+    if [ "$yn" != "y" ]; then
+        continue
+    fi
+    > $autopull_repo_file
+    echo "Autopull removed for all directories."
+}
+
+function remove {
+    if [ "$#" -eq 0 ]; then
+        set -- "$PWD"
+    fi
+    directories=$@
+    for i in $directories
+    do
+        cd "$current_dir"
+        if [ ! -d "$i" ]; then
+            echo "Error: Directory $i does not exist."
+            continue
+        fi
+
+        cd "$i"
+        if ! grep -q $PWD$ $autopull_repo_file; then
+            echo "Autopull is not set up for $PWD."
+            return
+        fi
+
+        read -p "Are you sure you want to remove AutoPull for $PWD ? (y/n) " yn
+        if [ "$yn" != "y" ]; then
+            continue
+        fi
+
+        autopull_script=$(echo "$PWD" | sed 's/\//\\\//g')
+        if [ "$(uname)" = "Darwin" ]; then
+            sed -i '' "/$autopull_script/d" "$autopull_repo_file"
+        else
+            sed -i "/$autopull_script/d" "$autopull_repo_file"
+        fi
+        echo "Autopull removed for $PWD."
+        cd "$current_dir"
+    done
+}
+
+function uninstall {
     if [ "$(id -u)" -ne 0 ]; then
         echo "Running with sudo..."
         exec sudo "$0" "$@" $target_user
@@ -31,46 +147,55 @@ if [ "$1" = "--uninstall" ]; then
     if [ $autopull_repo_file ]; then
         rm $autopull_repo_file
     fi
+    if [ $LOGFILE ]; then
+        rm $LOGFILE
+    fi
     if [ "/usr/local/bin/autopull" ]; then
         rm /usr/local/bin/autopull
     fi
     crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
     crontab -u "$target_user" -l | grep -v "$(which autopull)" | crontab -u "$target_user" -
     echo "Autopull uninstalled. To reinstall, run 'make' in the AutoPull repository."
+}
+
+function log_start {
+    current_date_time="`date "+%Y-%m-%d %H:%M:%S"`"
+    echo "______________________________________________________________" >> $log_file
+    echo "[$current_date_time]" >> $log_file
+}
+
+function log_end {
+    echo "______________________________________________________________" >> $log_file
+}
+
+if [ "$1" = "--help" ]; then
+    log_start
+    help | tee -a "$log_file"
+    exit 0
+fi
+
+if [ "$1" = "--uninstall" ]; then
+    log_start
+    uninstall $@ | tee -a "$log_file"
     exit 0
 fi
 
 if [ "$1" = "--remove-all" ]; then
-    autopull_script=$(echo "$(which autopull)" | sed 's/\//\\\//g')
-    if [ "$(uname)" = "Darwin" ]; then
-        sed -i '' "/$autopull_script/d" "$autopull_repo_file"
-    else
-        sed -i "/$autopull_script/d" "$autopull_repo_file"
-    fi
-    echo "Autopull removed for all directories."
+    log_start
+    remove_all | tee -a "$log_file"
     exit 0
 fi
 
 if [ "$1" = "--remove" ]; then
-    crontab -l | grep -v "$(which autopull) $PWD" | crontab -
-
-    autopull_script=$(echo "$(which autopull)\ $PWD" | sed 's/\//\\\//g')
-    if [ "$(uname)" = "Darwin" ]; then
-        sed -i '' "/$autopull_script/d" "$autopull_repo_file"
-    else
-        sed -i "/$autopull_script/d" "$autopull_repo_file"
-    fi
-    echo "Autopull removed for $PWD."
+    log_start
+    shift
+    remove $@ | tee -a "$log_file"
     exit 0
 fi
 
 if [ "$1" = "--pull-all" ]; then
-    repositories=$(cat $autopull_repo_file)
-    if [ -z "$repositories" ]; then
-        echo "No repositories set up for AutoPull."
-        exit 0
-    fi
-    $(which autopull) $repositories
+    log_start
+    pull_all | tee -a "$log_file"
     exit 0
 fi
 
@@ -79,69 +204,20 @@ if [ "$1" = "--repositories" ] || [ "$1" = "--repos" ]; then
     exit 0
 fi
 
+if [ "$1" = "--logs" ]; then
+    cat $log_file
+    exit 0
+fi
+
+if [ "$1" = "--clear-logs" ]; then
+    > $log_file
+    exit 0
+fi
+
 if [ "$#" -eq 0 ]; then
     set -- "$PWD"
 fi
 
-current_dir=$PWD
-directories=$@
-for i in $directories
-do
-    if [ "$i" = "$target_user" ]; then
-        continue
-    fi
-    cd $current_dir
-    # Check if the directory exists
-    if [ ! -d "$i" ]; then
-        echo "Error: Directory $i does not exist."
-        continue
-    fi
-
-    # Change to the directory
-    cd "$i"
-
-    # Check if the directory is a git repository
-    if [ ! -d ".git" ]; then
-        echo "ERROR: Directory $i is not a git repository."
-        continue
-    fi
-
-    if ! grep -q $PWD $autopull_repo_file; then
-        # Check if the user wants to set up autopull for a repository y/n
-        read -p "Do you want to set up periodic git autopull for $PWD? (y/n) " yn
-        
-        if [ "$yn" = "y" ]; then
-            # Add the autopull script to the crontab and autopull_repo_file
-            if ! grep -q $PWD $autopull_repo_file; then
-                echo $PWD >> $autopull_repo_file
-            fi
-            echo "Autopull set up for $PWD for every minute."
-        fi  
-    fi
-
-    git fetch
-    # Check if the local branch has a remote tracking branch
-    UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
-    
-    if [ -z "$UPSTREAM" ]; then
-        echo "No upstream branch is set for $PWD. Please ensure your branch is tracking a remote branch."
-        continue
-    fi
-
-    # Check if the local branch is behind the remote
-    LOCAL=$(git rev-parse @)
-    REMOTE=$(git rev-parse @{u})
-    BASE=$(git merge-base @ @{u})
-
-    if [ "$LOCAL" = "$REMOTE" ]; then
-        echo "$PWD is up-to-date."
-    elif [ "$LOCAL" = "$BASE" ]; then
-        echo "$PWD is behind, pulling changes..."
-        git pull
-    elif [ "$REMOTE" = "$BASE" ]; then
-        echo "$PWD has local changes that are not pushed."
-    else
-        echo "$PWD has diverged."
-    fi
-done
-cd $current_dir
+log_start
+main $@ | tee -a "$log_file"
+log_end
