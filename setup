@@ -18,9 +18,12 @@ chmod +x $AUTOPULL_PATH/autopull
 ln -s $AUTOPULL_PATH/autopull /usr/local/bin
 
 autopull_repositories_path=$(eval echo ~$target_user)/.autopull_repositories
-touch $autopull_repositories_path
-echo "#!/usr/bin/env sh" > $autopull_repositories_path
-echo "" >> $autopull_repositories_path
+if [ ! -f $autopull_repositories_path ]; then
+    touch $autopull_repositories_path
+    chmod +x $autopull_repositories_path
+    echo "#!/usr/bin/env sh" > $autopull_repositories_path
+    echo "" >> $autopull_repositories_path
+fi
 
 if ! crontab -u "$target_user" -l | grep -q "$autopull_repositories_path"; then
     (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $autopull_repositories_path") | crontab -u "$target_user" -
