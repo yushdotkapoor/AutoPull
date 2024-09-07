@@ -64,6 +64,11 @@ if [ "$1" = "--pull-all" ]; then
     exit 0
 fi
 
+if [ "$1" = "--repositories" ] || [ "$1" = "--repos" ]; then
+    cat $autopull_repo_file
+    exit 0
+fi
+
 if [ "$#" -eq 0 ]; then
     set -- "$PWD"
 fi
