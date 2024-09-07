@@ -15,7 +15,7 @@ This code has been tested with bash, zsh, and ash on MacOS Sonoma, MacOS Big Sur
 
 ## How it works
 
-AutoPull adds cron job to crontab that calls the autopuller resource configuration (.autopullrc). The same file gets run in an .*rc file. This can be a .zshrc, .bashrc, or .ashrc file. If one of these rc files does not get called when a new Terminal window opens, you may have to configure it to do so in the /etc/profile or /etc/.profile file.
+AutoPull adds cron job to crontab that calls the autopuller resource configuration (.autopullrc). The crontab will run from the user's crontab file, wherever that may be located.
 
 When a repository is added to the .autopullrc file, it calls git pull on the repository.
 
@@ -28,7 +28,7 @@ git config --global credential.helper store
 
 git clone https://github.com/yushdotkapoor/AutoPull.git
 cd AutoPull
-source installer
+make
 ```
 
 ##### If using MacOS, you will need to give /usr/sbin/cron full disk access. [Medium Tutorial](https://medium.com/vunamhung/granting-full-disk-access-to-cron-29d2267fbe62)

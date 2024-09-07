@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+
+target_user=$(/usr/bin/whoami)
+
+if [ "$EUID" -ne 0 ]; then
+  echo "Running with sudo..."
+  exec sudo "$0" $target_user "$@"
+fi
+
+# Check if the user is specified once the script is run with sudo
+if [ $# -eq 1 ]; then
+    target_user=$1
+fi
+
+AUTOPULL_PATH="$( cd "$( dirname "${BASH_SOURCE}" )" && pwd )"
+chmod +x $AUTOPULL_PATH/autopull
+
+ln -s $AUTOPULL_PATH/autopull /usr/local/bin
+
+autopull_repositories_path=${HOME}/.autopull_repositories
+touch $autopull_repositories_path
+echo "#!/usr/bin/env sh" > $autopull_repositories_path
+
+if ! crontab -u "$target_user" -l | grep -q "$autopull_repositories_path"; then
+    (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $autopull_repositories_path") | crontab -u "$target_user" -
+fi
+
+echo "Autopull installed. To uninstall, run 'autopull --uninstall'."

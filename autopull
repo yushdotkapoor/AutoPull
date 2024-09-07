@@ -1,7 +1,17 @@
-#!/usr/bin/env bash
-autopull_rc_file=$(echo ${HOME}/.autopullrc | xargs -n 1 ls 2>/dev/null | head -n 1)
-rc_file=$(echo ${HOME}/.*shrc | xargs -n 1 ls 2>/dev/null | head -n 1)
+#!/usr/bin/env sh
 
+target_user=$(/usr/bin/whoami)
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Running with sudo..."
+    exec sudo "$0" "$@" $target_user
+fi
+
+if [ "$target_user" = "root" ]; then
+    target_user=${@: -1}
+fi
+
+autopull_rc_file=$(echo ${HOME}/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 if [ "$1" = "--help" ]; then
     echo "Usage: autopull [DIRECTORY] [--uninstall] [--clean] [--cleanall]"
     echo "DIRECTORY: The directory to set up autopull for. If no directory is provided, the current directory is used."
@@ -18,22 +28,15 @@ if [ "$1" = "--uninstall" ]; then
     if [ "/usr/local/bin/autopull" ]; then
         rm /usr/local/bin/autopull
     fi
-    crontab -l | grep -v "# AutoPull" | crontab -
-    crontab -l | grep -v ".autopullrc" | crontab -
-    if [ $SHELL = "/bin/zsh" ]; then
-        sed -i '' "/# AutoPull/d" $rc_file
-        sed -i '' "/.autopullrc/d" $rc_file
-    else
-        sed -i "/# AutoPull/d" $rc_file
-        sed -i "/.autopullrc/d" $rc_file
-    fi
-    echo "Autopull uninstalled. To reinstall, run 'source installer' in the AutoPull repository."
+    crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
+    crontab -u "$target_user" -l | grep -v ".autopull_repositories" | crontab -u "$target_user" -
+    echo "Autopull uninstalled. To reinstall, run 'make' in the AutoPull repository."
     exit 0
 fi
 
 if [ "$1" = "--cleanall" ]; then
     auto_pull_script="$(which autopull)"
-    if [ $SHELL = "/bin/zsh" ]; then
+    if [ $SHELL = "/bin/sh" ]; then
         sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
@@ -45,11 +48,9 @@ fi
 if [ "$1" = "--clean" ]; then
     auto_pull_script="$(which autopull) $PWD"
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
-    if [ $SHELL = "/bin/zsh" ]; then
-        sed -i '' "/${auto_pull_script//\//\\/}/d" $rc_file
+    if [ $SHELL = "/bin/sh" ]; then
         sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
-        sed -i "/${auto_pull_script//\//\\/}/d" $rc_file
         sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     fi
     echo "Autopull removed for $PWD."
