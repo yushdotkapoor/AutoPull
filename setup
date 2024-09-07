@@ -15,6 +15,9 @@ fi
 AUTOPULL_PATH="$( cd "$( dirname "${BASH_SOURCE}" )" && pwd )"
 chmod +x $AUTOPULL_PATH/autopull
 
+if [ "$(which autopull)" ]; then
+    rm "$(which autopull)"
+fi
 ln -s $AUTOPULL_PATH/autopull /usr/local/bin
 
 autopull_repositories_path=$(eval echo ~$target_user)/.autopull_repositories

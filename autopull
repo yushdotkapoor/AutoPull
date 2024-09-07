@@ -150,11 +150,11 @@ function uninstall {
     if [ $LOGFILE ]; then
         rm $LOGFILE
     fi
-    if [ "/usr/local/bin/autopull" ]; then
-        rm /usr/local/bin/autopull
-    fi
     crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
     crontab -u "$target_user" -l | grep -v "$(which autopull)" | crontab -u "$target_user" -
+    if [ "$(which autopull)" ]; then
+        rm "$(which autopull)"
+    fi
     echo "Autopull uninstalled. To reinstall, run 'make' in the AutoPull repository."
 }
 
