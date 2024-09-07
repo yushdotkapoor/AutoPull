@@ -2,16 +2,8 @@
 
 target_user=$(/usr/bin/whoami)
 
-if [ "$(id -u)" -ne 0 ]; then
-    echo "Running with sudo..."
-    exec sudo "$0" "$@" $target_user
-fi
-
-if [ "$target_user" = "root" ]; then
-    target_user=$(eval echo \${$#})
-fi
-
 autopull_rc_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
+
 if [ "$1" = "--help" ]; then
     echo "Usage: autopull [DIRECTORY] [--uninstall] [--clean] [--cleanall]"
     echo "DIRECTORY: The directory to set up autopull for. If no directory is provided, the current directory is used."
@@ -22,6 +14,14 @@ if [ "$1" = "--help" ]; then
 fi
 
 if [ "$1" = "--uninstall" ]; then
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "Running with sudo..."
+        exec sudo "$0" "$@" $target_user
+    fi
+    if [ "$target_user" = "root" ]; then
+        target_user=$(eval echo \${$#})
+    fi
+
     if [ $autopull_rc_file ]; then
         rm $autopull_rc_file
     fi
@@ -48,16 +48,17 @@ fi
 if [ "$1" = "--clean" ]; then
     auto_pull_script="$(which autopull) $PWD"
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
-    if [ $SHELL = "/bin/sh" ]; then
-        sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
-    else
-        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
-    fi
+    sed -i.bak "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    # if [ $SHELL = "/bin/sh" ]; then
+    #     sed -i.bak "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    # else
+    #     sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    # fi
     echo "Autopull removed for $PWD."
     exit 0
 fi
 
-if [ "$#" -eq 1 ]; then
+if [ "$#" -eq 0 ]; then
     set -- "$PWD"
 fi
 
