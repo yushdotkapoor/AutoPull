@@ -2,11 +2,7 @@
 
 target_user=$(/usr/bin/whoami)
 
-function get_autopull_repo_file() {
-    echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1
-}
-
-autopull_repo_file=$(get_autopull_repo_file)
+autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 
 if [ "$1" = "--help" ]; then
     echo "Usage: autopull [options] [directories]"
@@ -29,7 +25,7 @@ if [ "$1" = "--uninstall" ]; then
     if [ "$target_user" = "root" ]; then
         target_user=$(eval echo \${$#})
     fi
-    autopull_repo_file=$(get_autopull_repo_file)
+    autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 
     if [ $autopull_repo_file ]; then
         rm $autopull_repo_file
