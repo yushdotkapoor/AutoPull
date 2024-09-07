@@ -8,7 +8,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ "$target_user" = "root" ]; then
-    target_user=${@: -1}
+    target_user=$(eval echo \${$#})
 fi
 
 autopull_rc_file=$(echo ${HOME}/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
@@ -57,7 +57,7 @@ if [ "$1" = "--clean" ]; then
     exit 0
 fi
 
-if [ "$#" -eq 0 ]; then
+if [ "$#" -eq 1 ]; then
     set -- "$PWD"
 fi
 
@@ -65,6 +65,9 @@ current_dir=$PWD
 directories=$@
 for i in $directories
 do
+    if [ "$i" = "$target_user" ]; then
+        continue
+    fi
     cd $current_dir
     # Check if the directory exists
     if [ ! -d "$i" ]; then
