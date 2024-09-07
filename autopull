@@ -36,7 +36,7 @@ fi
 
 if [ "$1" = "--cleanall" ]; then
     auto_pull_script="$(which autopull)"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ "$OSTYPE" = "darwin"* ]; then
         sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
@@ -48,7 +48,7 @@ fi
 if [ "$1" = "--clean" ]; then
     auto_pull_script="$(which autopull) $PWD"
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ "$OSTYPE" = "darwin"* ]; then
         sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
