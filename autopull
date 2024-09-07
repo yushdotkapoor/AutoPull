@@ -143,6 +143,7 @@ uninstall () {
         target_user=$(eval echo \${$#})
     fi
     autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
+    log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev/null | head -n 1)
 
     if [ $autopull_repo_file ]; then
         rm $autopull_repo_file
@@ -171,6 +172,7 @@ log_end () {
 if [ "$1" = "--help" ]; then
     log_start
     help | tee -a "$log_file"
+    log_end
     exit 0
 fi
 
@@ -183,6 +185,7 @@ fi
 if [ "$1" = "--remove-all" ]; then
     log_start
     remove_all | tee -a "$log_file"
+    log_end
     exit 0
 fi
 
@@ -190,12 +193,14 @@ if [ "$1" = "--remove" ]; then
     log_start
     shift
     remove $@ | tee -a "$log_file"
+    log_end
     exit 0
 fi
 
 if [ "$1" = "--pull-all" ]; then
     log_start
     pull_all | tee -a "$log_file"
+    log_end
     exit 0
 fi
 
