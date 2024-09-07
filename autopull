@@ -37,9 +37,9 @@ fi
 if [ "$1" = "--cleanall" ]; then
     auto_pull_script="$(which autopull)"
     if [ "$(uname)" = "Darwin" ]; then
-        sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+        sed -i '' '/${auto_pull_script}/d' $autopull_rc_file
     else
-        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+        sed -i '/${auto_pull_script}/d' $autopull_rc_file
     fi
     echo "Autopull removed for all directories."
     exit 0
@@ -50,9 +50,9 @@ if [ "$1" = "--clean" ]; then
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
     # Check if the system is macOS or Linux
     if [ "$(uname)" = "Darwin" ]; then
-        sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+        sed -i '' '/${auto_pull_script}/d' $autopull_rc_file
     else
-        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+        sed -i '/${auto_pull_script}/d' $autopull_rc_file
     fi
     echo "Autopull removed for $PWD."
     exit 0
