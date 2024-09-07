@@ -28,8 +28,8 @@ log_file=$(eval echo ~$target_user)/.autopull_logs
 touch $log_file
 chmod 777 $log_file
 
-if ! crontab -u "$target_user" -l | grep -q "$(which autopull)"; then
-    (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --pull-all >> $log_file 2>&1") | crontab -u "$target_user" -
+if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --pull-all"; then
+    (crontab -u "$target_user" -l 2>/dev/null; echo "\n# AutoPull"; echo "* * * * * $(which autopull) --pull-all >> $log_file 2>&1") | crontab -u "$target_user" -
 fi
 
 echo "Autopull installed. To uninstall, run 'autopull --uninstall'."
