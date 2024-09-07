@@ -36,8 +36,8 @@ fi
 
 if [ "$1" = "--cleanall" ]; then
     auto_pull_script="$(which autopull)"
-    if [ $SHELL = "/bin/sh" ]; then
-        sed -i '' "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     else
         sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
     fi
@@ -48,12 +48,11 @@ fi
 if [ "$1" = "--clean" ]; then
     auto_pull_script="$(which autopull) $PWD"
     crontab -l | grep -v "$(which autopull) $PWD" | crontab -
-    sed -i.bak "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
-    # if [ $SHELL = "/bin/sh" ]; then
-    #     sed -i.bak "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
-    # else
-    #     sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
-    # fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i "" "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    else
+        sed -i "/${auto_pull_script//\//\\/}/d" $autopull_rc_file
+    fi
     echo "Autopull removed for $PWD."
     exit 0
 fi
