@@ -44,11 +44,11 @@ if [ -d "/proc/ish" ]; then
     string_to_add="($IPLOGGER_PATH/autopull_loop &) &) >> $log_file 2>&1"
     if ! grep -q "$string_to_add" "$RC_FILE"; then
         echo "Adding AutoPull to $RC_FILE"
-        echo "$string_to_add" >> "$RC_FILE"
+        echo -e "# AutoPull\n$string_to_add" >> "$RC_FILE"
     fi
 else
     if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --all"; then
-        (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --all") | crontab -u "$target_user" -
+        (crontab -u "$target_user" -l 2>/dev/null; echo -e "# AutoPull\n* * * * * $(which autopull) --all") | crontab -u "$target_user" -
     fi
 fi
 
