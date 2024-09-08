@@ -21,6 +21,7 @@ help () {
 }
 
 main () {
+    log_start
     directories=$@
     for i in $directories
     do
@@ -79,6 +80,7 @@ main () {
         fi
     done
     cd "$current_dir"
+    log_end
 }
 
 pull_all () {
@@ -239,6 +241,4 @@ if [ "$#" -eq 0 ]; then
     set -- "$PWD"
 fi
 
-log_start
 main $@ | tee -a "$log_file"
-log_end
