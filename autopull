@@ -154,6 +154,19 @@ uninstall () {
     
     crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
     crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" -
+    if [ -d "/proc/ish" ]; then
+        for file in ${HOME}/.*shrc; do
+            if [[ ! $file =~ ${HOME}/.!*shrc ]]; then
+                RC_FILE="$file"
+            fi
+        done
+        if [ -z "$RC_FILE" ]; then
+            echo "No shell configuration file found"
+            exit 1
+        fi
+        sed -i "/AutoPull/d" "$RC_FILE"
+        sed -i "/autopull_loop/d" "$RC_FILE"
+    fi
     if [ "$(which autopull)" ]; then
         rm "$(which autopull)"
     fi
