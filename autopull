@@ -10,7 +10,7 @@ log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev
 help () {
     echo "Usage: autopull [options] [directories]"
     echo "Options:"
-    echo "  --pull-all: Pull changes for all directories with AutoPull."
+    echo "  --all: Pull changes for all directories with AutoPull."
     echo "  --remove [directories]: Remove AutoPull for the specified directories."
     echo "  --remove-all: Remove AutoPull for all directories."
     echo "  --repositories: List all directories with AutoPull."
@@ -197,7 +197,7 @@ if [ "$1" = "--remove" ]; then
     exit 0
 fi
 
-if [ "$1" = "--pull-all" ]; then
+if [ "$1" = "--all" ]; then
     log_start
     pull_all | tee -a "$log_file"
     log_end
