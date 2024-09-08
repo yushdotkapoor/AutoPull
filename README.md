@@ -15,7 +15,7 @@ This code has been tested on MacOS Sonoma, MacOS Big Sur and Ubuntu 24.04
 
 ## How it works
 
-AutoPull adds cron job to crontab that calls the autopuller and pulls all repositories set up for autopull (found in .autopull_repositories). The crontab will run from the user's crontab file, wherever that may be located. The crontab will run ```autopull --pull-all``` every minute.
+AutoPull adds cron job to crontab that calls the autopuller and pulls all repositories set up for autopull (found in .autopull_repositories). The crontab will run from the user's crontab file, wherever that may be located. The crontab will run ```autopull --all``` every minute.
 
 A repository path is added to the .autopull_repositories file, which means that if the repository is ever moved, this may cause issues.
 
