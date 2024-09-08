@@ -21,7 +21,6 @@ help () {
 }
 
 main () {
-    log_start
     directories=$@
     for i in $directories
     do
@@ -80,7 +79,6 @@ main () {
         fi
     done
     cd "$current_dir"
-    log_end
 }
 
 pull_all () {
@@ -89,7 +87,7 @@ pull_all () {
         echo "No repositories set up for AutoPull."
         return
     fi
-    $(which autopull) $repositories
+    $(which autopull) $repositories &>/dev/null
 }
 
 remove_all () {
@@ -150,7 +148,7 @@ uninstall () {
         done
         if [ -z "$RC_FILE" ]; then
             echo "No shell configuration file found"
-            exit 1
+            return
         fi
         sed -i "/AutoPull/d" "$RC_FILE"
         sed -i "/autopull_loop/d" "$RC_FILE"
@@ -192,53 +190,33 @@ if [ "$1" = "--help" ]; then
     log_start
     help | tee -a "$log_file"
     log_end
-    exit 0
-fi
-
-if [ "$1" = "--uninstall" ]; then
+elif [ "$1" = "--uninstall" ]; then
     uninstall $@
-    exit 0
-fi
-
-if [ "$1" = "--remove-all" ]; then
+elif [ "$1" = "--remove-all" ]; then
     log_start
     remove_all | tee -a "$log_file"
     log_end
-    exit 0
-fi
-
-if [ "$1" = "--remove" ]; then
+elif [ "$1" = "--remove" ]; then
     log_start
     shift
     remove $@ | tee -a "$log_file"
     log_end
-    exit 0
-fi
-
-if [ "$1" = "--all" ]; then
+elif [ "$1" = "--all" ]; then
     log_start
     pull_all | tee -a "$log_file"
     log_end
-    exit 0
-fi
-
-if [ "$1" = "--repositories" ] || [ "$1" = "--repos" ]; then
+elif [ "$1" = "--repositories" ] || [ "$1" = "--repos" ]; then
     cat $autopull_repo_file
-    exit 0
-fi
-
-if [ "$1" = "--logs" ]; then
+elif [ "$1" = "--logs" ]; then
     cat $log_file
-    exit 0
-fi
-
-if [ "$1" = "--clear-logs" ]; then
+elif [ "$1" = "--clear-logs" ]; then
     > $log_file
-    exit 0
+else 
+    if [ "$#" -eq 0 ]; then
+        set -- "$PWD"
+    fi
+    
+    log_start
+    main $@ | tee -a "$log_file"
+    log_end
 fi
-
-if [ "$#" -eq 0 ]; then
-    set -- "$PWD"
-fi
-
-main $@ | tee -a "$log_file"
