@@ -46,7 +46,7 @@ if [ -d "/proc/ish" ]; then
         echo "Adding AutoPull to $RC_FILE"
         echo -e "# AutoPull\n$autopull_loop" >> "$RC_FILE"
     fi
-    $(autopull_loop)
+    source $RC_FILE
 else
     if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --all"; then
         (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --all") | crontab -u "$target_user" -

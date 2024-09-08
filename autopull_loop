@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-while true; do
+while [ $(which autopull) ]; do
     $(which autopull) --all
     sleep 60
 done
