@@ -41,7 +41,7 @@ if [ -d "/proc/ish" ]; then
         exit 1
     fi
 
-    string_to_add="(($IPLOGGER_PATH/autopull_loop &) &) >> $log_file 2>&1"
+    string_to_add="(($AUTOPULL_PATH/autopull_loop &) &) >> $log_file 2>&1"
     if ! grep -q "$string_to_add" "$RC_FILE"; then
         echo "Adding AutoPull to $RC_FILE"
         echo -e "# AutoPull\n$string_to_add" >> "$RC_FILE"
