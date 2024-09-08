@@ -151,12 +151,9 @@ uninstall () {
     if [ $LOGFILE ]; then
         rm $LOGFILE
     fi
-    if crontab -u "$target_user" -l | grep -q "# AutoPull"; then
-        crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
-    fi
-    if crontab -u "$target_user" -l | grep -q "autopull"; then
-        crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" -
-    fi
+    
+    crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
+    crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" 
     if [ "$(which autopull)" ]; then
         rm "$(which autopull)"
     fi
