@@ -11,7 +11,9 @@ When working with distributed systems or code that is deployed to several differ
 
 ## Support
 
-This code has been tested on MacOS Sonoma, MacOS Big Sur and Ubuntu 24.04
+This code has been tested on MacOS Sonoma, MacOS Big Sur and Ubuntu 24.04.
+
+I have also tested this on the iOS Linux emulator called iSH, whcih runs a version of alpine linux.
 
 ## How it works
 
@@ -20,6 +22,10 @@ AutoPull adds cron job to crontab that calls the autopuller and pulls all reposi
 A repository path is added to the .autopull_repositories file, which means that if the repository is ever moved, this may cause issues.
 
 A log file will also be present with time stamps to check for errors.
+
+##### iSH differences:
+There is a difference in how the code works in iSH. Instead of using the crontab (which doesn't seem to work in iSH), a script called ```autopull_loop``` is called which runs in the background when .ashrc is called. ```autopull_loop``` runs in a while loop until the terminal is exited or AutoPull is uninstalled.
+
 
 ## Installation
 
