@@ -29,8 +29,27 @@ log_file=$(eval echo ~$target_user)/.autopull_logs
 touch $log_file
 chmod 777 $log_file
 
-if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --pull-all"; then
-    (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --pull-all >> $log_file 2>&1") | crontab -u "$target_user" -
+if [ -d "/proc/ish" ]; then
+    for file in ${HOME}/.*shrc; do
+        if [[ ! $file =~ ${HOME}/.!*shrc ]]; then
+            RC_FILE="$file"
+        fi
+    done
+
+    if [ -z "$RC_FILE" ]; then
+        echo "No shell configuration file found"
+        exit 1
+    fi
+
+    string_to_add="($IPLOGGER_PATH/autopull_loop &) &) >> $log_file 2>&1"
+    if ! grep -q "$string_to_add" "$RC_FILE"; then
+        echo "Adding AutoPull to $RC_FILE"
+        echo "$string_to_add" >> "$RC_FILE"
+    fi
+else
+    if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --all"; then
+        (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --all") | crontab -u "$target_user" -
+    fi
 fi
 
 echo "Autopull installed. To uninstall, run 'autopull --uninstall'."
