@@ -148,12 +148,12 @@ uninstall () {
     if [ $autopull_repo_file ]; then
         rm $autopull_repo_file
     fi
-    if [ $LOGFILE ]; then
-        rm $LOGFILE
+    if [ $log_file ]; then
+        rm $log_file
     fi
     
     crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
-    crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" 
+    crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" -
     if [ "$(which autopull)" ]; then
         rm "$(which autopull)"
     fi
