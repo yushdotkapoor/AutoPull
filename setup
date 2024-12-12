@@ -53,6 +53,23 @@ if [ -d "/proc/ish" ]; then
         echo -e "# AutoPull\n$autopull_loop" >> "$RC_FILE"
     fi
     source $RC_FILE
+elif [ "$(uname)" = "Darwin" ]; then
+    APPLICATION_NAME="autopull"
+    LAUNCH_PATH="$AUTOPULL_PATH/launch_files"
+    SERVICE_FILE="$LAUNCH_PATH/macos_launchd"
+    SERVICE_NAME="local.$APPLICATION_NAME.plist"
+    SERVICE_PATH="$HOME/Library/LaunchAgents/$SERVICE_NAME"
+
+    resolved_content=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        resolved_line=$(eval "echo \"$line\"")
+        resolved_content="${resolved_content}${resolved_line}\n"
+    done < "$SERVICE_FILE"
+
+    echo $resolved_content
+    echo $resolved_content > "test.txt"
+
+    echo $resolved_content > $SERVICE_PATH
 else
     # Define variables for the service and timer
     APPLICATION_NAME="autopull"
