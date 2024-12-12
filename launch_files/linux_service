@@ -1,0 +1,12 @@
+[Unit]
+Description=AutoPull Service
+After=network.target
+
+[Service]
+User=$target_user
+ExecStart=$(which autopull) --all
+Type=oneshot
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
