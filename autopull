@@ -2,7 +2,12 @@
 PATH=/usr/local/bin:$PATH
 
 current_dir=$PWD
-target_user=$($(which whoami))
+if [ "$(whoami)" = "root" ]; then
+    # Use SUDO_USER if available, otherwise default to root
+    target_user=${SUDO_USER:-root}
+else
+    target_user=$(whoami)
+fi
 
 autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
 log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev/null | head -n 1)
@@ -156,9 +161,24 @@ uninstall () {
         if [ "$target_user" = "root" ]; then
             target_user=$(eval echo \${$#})
         fi
-        
-        crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
-        crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" -
+
+        if [ "$(uname)" = "Darwin" ]; then
+            crontab -u "$target_user" -l | grep -v "# AutoPull" | crontab -u "$target_user" -
+            crontab -u "$target_user" -l | grep -v "autopull" | crontab -u "$target_user" -
+        else
+            SERVICE_NAME="autopull.service"
+            TIMER_NAME="autopull.timer"
+            SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
+            TIMER_PATH="/etc/systemd/system/$TIMER_NAME"
+            systemctl stop $SERVICE_NAME
+            systemctl disable $SERVICE_NAME
+            systemctl stop $TIMER_NAME
+            systemctl disable $TIMER_NAME
+            rm $SERVICE_PATH
+            rm $TIMER_PATH
+            systemctl daemon-reload
+            systemctl reset-failed
+        fi        
 
         autopull_repo_file=$(echo $(eval echo ~$target_user)/.autopull_repositories | xargs -n 1 ls 2>/dev/null | head -n 1)
         log_file=$(echo $(eval echo ~$target_user)/.autopull_logs | xargs -n 1 ls 2>/dev/null | head -n 1)
