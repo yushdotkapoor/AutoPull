@@ -55,7 +55,7 @@ if [ -d "/proc/ish" ]; then
     source $RC_FILE
 elif [ "$(uname)" = "Darwin" ]; then
    if ! crontab -u "$target_user" -l | grep -q "$(which autopull) --all"; then
-        (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --all") | crontab -u "$target_user" -
+        (crontab -u "$target_user" -l 2>/dev/null; echo "# AutoPull"; echo "* * * * * $(which autopull) --all >/dev/null") | crontab -u "$target_user" -
     fi
 else
     # Define variables for the service and timer
